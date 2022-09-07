@@ -27,8 +27,9 @@ main(void)
       exit();
     }
     if(pid == 0){
-      exec("sh", argv);
-      printf(1, "init: exec sh failed\n");
+//		exec("sh", argv);
+		exec("ssulogin", argv);
+	  printf(1, "init: exec sh failed\n");
       exit();
     }
     while((wpid=wait()) >= 0 && wpid != pid)
