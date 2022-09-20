@@ -95,3 +95,8 @@ int sys_memsize(void){
     uint size = p->sz;
     return size;
 }
+
+int sys_trace(void){
+  argint(0, &myproc()->mask);
+  return 0;
+}
