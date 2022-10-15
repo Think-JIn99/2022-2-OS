@@ -29,33 +29,39 @@ static void wakeup1(void *chan);
 struct proc *ssu_schedule(){
   struct proc * p;
   struct proc *ret = NULL;
+  // acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->state == RUNNABLE){
-      if (ret == NULL || ret->weight > p->weight){
+      if (ret == NULL || ret->priority > p->priority){
         ret = p;
       }
     }
   }
-   
-  if (ret) cprintf("PID: %d, NAME: %s, WEIGHT: %d, PRIORITY: %d\n", ret->pid, ret->name, ret->weight, ret->priority);
+  // release(&ptable.lock);
+  // if (ret) cprintf("PID: %d, NAME: %s, WEIGHT: %d, PRIORITY: %d\n", ret->pid, ret->name, ret->weight, ret->priority);
   return ret;
 }
 
 void update_priority(struct proc *proc){
-  proc->priority += TIME_SLICE / proc->weight;
+  int prioirty = TIME_SLICE / proc->weight;
+  //min priority is 3
+  proc->priority += prioirty;
+  // if (proc->priority < 3) proc->priority = 3;
 }
 
 void update_min_priority(){
   struct proc *p;
   struct proc *min = NULL;
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->state ==  RUNNABLE){
+    if(p->state == RUNNABLE){
       if (min==NULL || min->priority < p->priority){
           min = p;
       }
     }
   }
-  if (min != NULL) ptable.min_priority = min->priority;
+  if (min != NULL){
+    ptable.min_priority = min->priority;
+  }
 }
 
 void assgin_min_priority(struct proc *proc){
@@ -132,11 +138,9 @@ found:
   //Add weight to process
   p->state = EMBRYO;
   p->pid = nextpid++;
-  
-  weight++;  
-  // update_priority(p);
-  // update_min_priority();
-  
+  p->weight = weight++;  
+
+  if (p->pid == 1) ptable.min_priority = 3;
   assgin_min_priority(p);
   
   release(&ptable.lock);
@@ -382,31 +386,32 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    //   if(p->state != RUNNABLE)
-    //     continue;
+      // if(p->state != RUNNABLE)
+      //   continue;
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-    
     p = ssu_schedule();
-
-    update_priority(p);
-    update_min_priority();
-
+    if (p == NULL){
+      release(&ptable.lock);
+      continue;
+    }
+    // cprintf("PID: %d, NAME: %s, WEIGHT: %d, PRIORITY: %d\n", p->pid, p->name, p->weight, p->priority);
+  
     c->proc = p;
     switchuvm(p);
     p->state = RUNNING;
 
-    swtch(&(c->scheduler), p->context);
-    switchkvm();
-
-    // Process is done running for now.
-    // It should have changed its p->state before coming back.
+    swtch(&(c->scheduler), p->context);  // Process is done running for now.
+    switchkvm(); // It should have changed its p->state before coming back.
+    
+    update_priority(p);
+    update_min_priority();
+    
     c->proc = 0;
-    }
     release(&ptable.lock);
+  }
 }
 
 // Enter scheduler.  Must hold only ptable.lock
@@ -588,7 +593,7 @@ procdump(void)
   }
 }
 
-void do_weightest(int weight){
+void do_weightset(int weight){
   acquire(&ptable.lock);
   myproc()->weight = weight;
   release(&ptable.lock);
