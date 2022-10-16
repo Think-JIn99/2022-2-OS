@@ -29,7 +29,6 @@ static void wakeup1(void *chan);
 struct proc *ssu_schedule(){
   struct proc * p;
   struct proc *ret = NULL;
-  // acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->state == RUNNABLE){
       if (ret == NULL || ret->priority > p->priority){
@@ -37,9 +36,11 @@ struct proc *ssu_schedule(){
       }
     }
   }
-  // release(&ptable.lock);
-  // if (ret) cprintf("PID: %d, NAME: %s, WEIGHT: %d, PRIORITY: %d\n", ret->pid, ret->name, ret->weight, ret->priority);
+  #ifdef DEBUG
+    if (ret) cprintf("PID: %d, NAME: %s, WEIGHT: %d, PRIORITY: %d\n", ret->pid, ret->name, ret->weight, ret->priority);
+  #endif
   return ret;
+  
 }
 
 void update_priority(struct proc *proc){
