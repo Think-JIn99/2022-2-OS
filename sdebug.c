@@ -4,12 +4,12 @@
 
 
 #define PNUM 6
-#define PRINT_CYCLE 10000000
-#define TOTAL_COUNTER 500000000
+#define PRINT_CYCLE 100000000
+#define TOTAL_COUNTER 1000000000
 
 void sedbug_func(void){
     int n, pid;
-    printf(1,"start sedbug \n");
+    printf(1,"start sdebug \n");
 
     for (n = 1; n < PNUM; n++){
         pid = fork();
@@ -25,12 +25,11 @@ void sedbug_func(void){
             int print_counter = 0;
             int end_ticks;
             while (counter <= TOTAL_COUNTER){
-              
                 if (print_counter == PRINT_CYCLE){
                     if(first){
                         end_ticks = uptime();
                         int time = (end_ticks - start_ticks) * 10;
-                        printf(1, "PID: %d, WEIGHT: %d TIMES: %dms \n", getpid(), n, time);
+                        printf(1,"PID: %d, WEIGHT: %d TIMES: %dm s \n", getpid(), time, n);
                         first = 0;
                     }
                     print_counter = 0;
@@ -44,7 +43,7 @@ void sedbug_func(void){
     }
     
     while (wait() != -1);
-    printf(1,"end of sedebug command\n");
+    printf(1,"end of sdebug command\n");
 }
 
 int main(void){

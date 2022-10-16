@@ -40,7 +40,6 @@ struct proc *ssu_schedule(){
     if (ret) cprintf("PID: %d, NAME: %s, WEIGHT: %d, PRIORITY: %d\n", ret->pid, ret->name, ret->weight, ret->priority);
   #endif
   return ret;
-  
 }
 
 void update_priority(struct proc *proc){
